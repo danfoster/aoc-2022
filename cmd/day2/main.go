@@ -57,7 +57,7 @@ func part1(filename string) {
 		score += win_score[string(input)+string(output)]
 
 	}
-	fmt.Printf("Part 1 Total Score: %d\n", score)
+	fmt.Printf("Part 1: %d\n", score)
 
 }
 
@@ -87,6 +87,6 @@ func part2(filename string) {
 		score += mapping_score[string(move)+string(outcome)]
 
 	}
-	fmt.Printf("Part 2 Total Score: %d\n", score)
+	fmt.Printf("Part 2: %d\n", score)
 
 }
