@@ -41,7 +41,6 @@ func read_elves(filename string) []Elf {
 		
 		
     }
-	// elves = append(elves, elf)
   
     readFile.Close()
 	return elves
