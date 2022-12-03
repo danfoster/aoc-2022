@@ -18,15 +18,26 @@ func main() {
 		panic("Provide the input file as an argument")
 	}
 
-	part1(os.Args[1])
-	part2(os.Args[1])
+	input := readInput(os.Args[1])
+	part1(input)
+	part2(input)
 }
 
-func part1(filename string) {
+func readInput(filename string) [][]string {
 	readFile, err := os.Open(filename)
 	check(err)
 	fileScanner := bufio.NewScanner(readFile)
 	fileScanner.Split(bufio.ScanLines)
+
+	var input [][]string
+	for fileScanner.Scan() {
+		line := strings.Fields(fileScanner.Text())
+		input = append(input, line)
+	}
+	return input
+}
+
+func part1(input [][]string) {
 
 	shape_score := map[byte]int{
 		'A': 1, // Rock
@@ -49,8 +60,7 @@ func part1(filename string) {
 	}
 	var score int
 
-	for fileScanner.Scan() {
-		line := strings.Fields(fileScanner.Text())
+	for _, line := range input {
 		input := line[0][0]
 		output := line[1][0]
 		score += shape_score[output]
@@ -61,11 +71,7 @@ func part1(filename string) {
 
 }
 
-func part2(filename string) {
-	readFile, err := os.Open(filename)
-	check(err)
-	fileScanner := bufio.NewScanner(readFile)
-	fileScanner.Split(bufio.ScanLines)
+func part2(input [][]string) {
 
 	mapping_score := map[string]int{
 		"AX": 3, // Rock, Lose -> Scissors: 0 + 3
@@ -80,8 +86,7 @@ func part2(filename string) {
 	}
 	var score int
 
-	for fileScanner.Scan() {
-		line := strings.Fields(fileScanner.Text())
+	for _, line := range input {
 		move := line[0][0]
 		outcome := line[1][0]
 		score += mapping_score[string(move)+string(outcome)]
