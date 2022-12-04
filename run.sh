@@ -9,4 +9,10 @@ then
     docker build .docker -t $IMAGE
 fi
 
-docker run --rm -it -v "$(pwd)":/code $IMAGE /entrypoint.sh $@
+docker run \
+    --rm \
+    -it \
+    -v "$(pwd)":/code \
+    -v "$(pwd)/.go-build":/root/.cache/go-build \
+    $IMAGE \
+    /entrypoint.sh $@
