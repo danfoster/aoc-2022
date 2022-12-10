@@ -61,7 +61,9 @@ type CRT struct {
 }
 
 func (crt *CRT) clockCycleToPos(clock int) Point {
-
+	p = Point{}
+	
+	return p
 }
 
 type CPU struct {
