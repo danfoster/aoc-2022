@@ -56,6 +56,7 @@ func main() {
 			div1_idx = k + 1
 		} else if div2_idx == 0 && reflect.DeepEqual(v, div2) {
 			div2_idx = k + 1
+			break
 		}
 	}
 	result := div1_idx * div2_idx
