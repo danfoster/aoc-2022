@@ -30,7 +30,7 @@ func main() {
 	fmt.Printf("Part 1: %d\n", i)
 
 	// Part 2
-	cave = genCave(input, max_x+max_y, max_y, true)
+	cave = genCave(input, max_x+max_y+1, max_y, true)
 	for i = 0; dropSand(cave, Point{x: 500, y: 0}); i++ {
 	}
 	// displayCave(cave, 400)
