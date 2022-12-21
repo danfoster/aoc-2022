@@ -72,9 +72,8 @@ func (costs *Costs) getClosestUnvisited(starting_label string, unvisited []*grap
 	return node, unvisited[:len(unvisited)-1]
 }
 
-func (costs *Costs) findBestRoute(current_label string, remaining_time int) int {
+func (costs *Costs) findBestRoute(current_label string, remaining_time int, remaining_nodes []string) int {
 	current_pressure := 0
-	remaining_nodes := common.RemoveFromStringSlice(costs.Labels, current_label)
 	for _, node := range remaining_nodes {
 		nodes := common.RemoveFromStringSlice(remaining_nodes, node)
 		time := remaining_time - int(costs.Costs[current_label][node].Cost)
@@ -91,24 +90,16 @@ func (costs *Costs) findBestRouteStep(current_label string, remaining_nodes []st
 	if remaining_time <= 0 {
 		return current_pressure
 	}
-	// for i := 0; i < 5-len(remaining_nodes); i++ {
-	// 	fmt.Printf("    ")
-	// }
-	// fmt.Printf("[%d] Moving to %s -> (%d) %v\n", remaining_time, current_label, len(remaining_nodes), remaining_nodes)
+	
 	if costs.graph.Nodes[current_label].Weight != 0 {
 		remaining_time--
 		pressure := remaining_time * costs.graph.Nodes[current_label].Weight
 		current_pressure += pressure
-		// for i := 0; i < 5-len(remaining_nodes); i++ {
-		// 	fmt.Printf("    ")
-		// }
-		// fmt.Printf("[%d] Opening %s = %d (%d)\n", remaining_time, current_label, pressure, current_pressure)
+
 
 	}
 	new_max := current_pressure
-	// fmt.Printf("-- %v (%d, %d) \n", remaining_nodes, len(remaining_nodes), cap(remaining_nodes))
 	for _, node := range remaining_nodes {
-		// fmt.Printf("** %v %s\n", remaining_nodes, node)
 		nodes := common.RemoveFromStringSlice(remaining_nodes, node)
 		time := remaining_time - int(costs.Costs[current_label][node].Cost)
 
@@ -117,7 +108,6 @@ func (costs *Costs) findBestRouteStep(current_label string, remaining_nodes []st
 			new_max = v
 		}
 	}
-	// fmt.Printf("++ %v (%d, %d) \n", remaining_nodes, len(remaining_nodes), cap(remaining_nodes))
 
 	return new_max
 }
@@ -151,8 +141,62 @@ func main() {
 	costs := NewCosts(graph, node_labels)
 	costs.calcAllPathCosts()
 
-	result := costs.findBestRoute("AA", 30)
+	result := costs.findBestRoute("AA", 30, common.RemoveFromStringSlice(costs.Labels, "AA"))
 	fmt.Println(result)
+
+	pairs := sliceToPairCombos(common.RemoveFromStringSlice(node_labels, "AA"))
+	max := 0
+	for _,p := range pairs {
+		r1 := costs.findBestRoute("AA", 26, p[0])
+		r2 := costs.findBestRoute("AA", 26, p[1])
+		fmt.Println(p)
+		sum := r1 + r2
+		fmt.Println(sum)
+		if sum > max {
+			max = sum
+		}
+	}
+	fmt.Println(max)
+
+
+}
+
+func sliceToPairCombos(input []string) [][][]string {
+	results := [][][]string{}
+
+	if len(input) % 2 == 1 {
+		input = append(input, "")
+	}
+	
+	pairs := [][]string{}
+	for i:=0;i<len(input);i+=2 {
+		pairs = append(pairs, []string{input[i], input[i+1]})
+	}
+	for bitmask:=int64(0);bitmask<int64(1<<len(pairs));bitmask++ {
+		l := []string{}
+		r := []string{}
+		for i:=len(pairs)-1;i>=0;i-- {
+			v := (bitmask >> i) & 1
+			if v == 1 {
+				if pairs[i][0] != "" {
+					l = append(l,pairs[i][0])
+				}
+				if pairs[i][1] != "" {
+					r = append(r,pairs[i][1])
+				}
+			} else {
+				if pairs[i][1] != "" {
+					l = append(l,pairs[i][1])
+				}
+				if pairs[i][0] != "" {
+					r = append(r,pairs[i][0])
+				}
+			}
+		}
+		combo := [][]string{l, r}
+		results = append(results, combo)
+	}
+	return results
 }
 
 func readInput(filename string) *(graph.Graph) {
