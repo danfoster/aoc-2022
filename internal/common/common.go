@@ -16,11 +16,17 @@ func CopyMap(a *map[string]bool) *map[string]bool {
 }
 
 func RemoveFromStringSlice(old []string, key string) []string {
-	new := []string{}
-	for _, v := range old {
-		if v != key {
-			new = append(new, v)
+	new := make([]string, len(old)-1)
+	var k int
+	var v string
+	for k, v = range old {
+		if v == key {
+			break
 		}
 	}
+	// new = append(old[:k], old[k+1:]...)
+	copy(new, old[:k])
+	copy(new[k:], old[k+1:])
+	// fmt.Printf("%v - %s = %v\n", old, key, new)
 	return new
 }

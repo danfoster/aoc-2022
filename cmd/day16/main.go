@@ -126,9 +126,12 @@ func main() {
 	if len(os.Args) < 2 {
 		panic("Provide the input file as an argument")
 	}
-	graph := readInput(os.Args[1])
-	// input.ToDot()
-	// pressures := findRoutes(30, 0, 0, input.Nodes["AA"], make(map[string]bool))
+	day16(os.Args[1])
+}
+
+func day16(filename string) {
+
+	graph := readInput(filename)
 	nodes := graph.NodesWithCost()
 	*nodes = append(*nodes, graph.Get("AA"))
 
@@ -140,10 +143,18 @@ func main() {
 	costs := NewCosts(graph, node_labels)
 	costs.calcAllPathCosts()
 
+	part1(costs)
+	part2(costs, &node_labels)
+
+}
+
+func part1(costs *Costs) {
 	result := costs.findBestRoute("AA", 30, common.RemoveFromStringSlice(costs.Labels, "AA"))
 	fmt.Println(result)
+}
 
-	pairs := sliceToPairCombos(common.RemoveFromStringSlice(node_labels, "AA"))
+func part2(costs *Costs, node_labels *[]string) {
+	pairs := sliceToPairCombos(common.RemoveFromStringSlice(*node_labels, "AA"))
 	max := 0
 	for _, p := range pairs {
 		r1 := costs.findBestRoute("AA", 26, p[0])
@@ -155,9 +166,7 @@ func main() {
 		}
 	}
 	fmt.Println(max)
-
 }
-
 func countBits(n int) int {
 	count := 0
 	for n > 0 {
