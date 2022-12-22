@@ -90,12 +90,11 @@ func (costs *Costs) findBestRouteStep(current_label string, remaining_nodes []st
 	if remaining_time <= 0 {
 		return current_pressure
 	}
-	
+
 	if costs.graph.Nodes[current_label].Weight != 0 {
 		remaining_time--
 		pressure := remaining_time * costs.graph.Nodes[current_label].Weight
 		current_pressure += pressure
-
 
 	}
 	new_max := current_pressure
@@ -146,56 +145,52 @@ func main() {
 
 	pairs := sliceToPairCombos(common.RemoveFromStringSlice(node_labels, "AA"))
 	max := 0
-	for _,p := range pairs {
+	for _, p := range pairs {
 		r1 := costs.findBestRoute("AA", 26, p[0])
 		r2 := costs.findBestRoute("AA", 26, p[1])
-		fmt.Println(p)
 		sum := r1 + r2
-		fmt.Println(sum)
+		// fmt.Printf("%v: %d\n", p, sum)
 		if sum > max {
 			max = sum
 		}
 	}
 	fmt.Println(max)
 
+}
 
+func countBits(n int) int {
+	count := 0
+	for n > 0 {
+		count += n & 1
+		n >>= 1
+	}
+	return count
 }
 
 func sliceToPairCombos(input []string) [][][]string {
 	results := [][][]string{}
 
-	if len(input) % 2 == 1 {
-		input = append(input, "")
-	}
-	
-	pairs := [][]string{}
-	for i:=0;i<len(input);i+=2 {
-		pairs = append(pairs, []string{input[i], input[i+1]})
-	}
-	for bitmask:=int64(0);bitmask<int64(1<<len(pairs));bitmask++ {
+	size := len(input)
+
+	for i := 0; i < (1 << (size - 1)); i++ {
+		if countBits(i) != size/2 {
+			continue
+		}
 		l := []string{}
 		r := []string{}
-		for i:=len(pairs)-1;i>=0;i-- {
-			v := (bitmask >> i) & 1
-			if v == 1 {
-				if pairs[i][0] != "" {
-					l = append(l,pairs[i][0])
-				}
-				if pairs[i][1] != "" {
-					r = append(r,pairs[i][1])
-				}
+		n := i
+		for j := 0; j < size; j++ {
+			if n&1 == 0 {
+				l = append(l, input[j])
 			} else {
-				if pairs[i][1] != "" {
-					l = append(l,pairs[i][1])
-				}
-				if pairs[i][0] != "" {
-					r = append(r,pairs[i][0])
-				}
+				r = append(r, input[j])
 			}
+			n >>= 1
 		}
 		combo := [][]string{l, r}
 		results = append(results, combo)
 	}
+
 	return results
 }
 
