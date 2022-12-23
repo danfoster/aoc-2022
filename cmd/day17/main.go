@@ -183,6 +183,33 @@ func (chamber *Chamber) Print() {
 	fmt.Printf("+-------+\n")
 }
 
+func (chamber *Chamber) DepthMap() [7]uint {
+	depthMap := [7]uint{}
+	depthsFound := 0
+	for i := uint(0); depthsFound < 7; i++ {
+		if chamber.height-i > 0 {
+			row := chamber.data[chamber.height-i]
+			for j := 0; j < 7; j++ {
+				if depthMap[j] == 0 {
+					f := (row >> (6 - j)) & 1
+					if f == 1 {
+						depthMap[j] = i
+						depthsFound++
+					}
+				}
+			}
+		} else {
+			for j := 0; j < 7; j++ {
+				if depthMap[j] == 0 {
+					depthMap[j] = i
+					depthsFound++
+				}
+			}
+		}
+	}
+	return depthMap
+}
+
 func NewChamber() *Chamber {
 	chamber := Chamber{}
 	chamber.data = []byte{}
@@ -192,10 +219,21 @@ func NewChamber() *Chamber {
 func day17(filename string) {
 
 	jetpattern := readInput(filename)
+	part1(jetpattern)
+	part2(jetpattern)
 
+}
+
+func part1(jetpattern *string) {
 	chamber := NewChamber()
-	jet_idx := 0
-	for i := 0; i < 2022; i++ {
+
+	// chamber.Print()
+	DropRocks(chamber, jetpattern, 0, 2022)
+	fmt.Println(chamber.height)
+}
+
+func DropRocks(chamber *Chamber, jetpattern *string, jet_idx int, count int) {
+	for i := 0; i < count; i++ {
 		rock_char := rockpattern[i%len(rockpattern)]
 		rock := NewRock(rock_char, chamber.height+3)
 		chamber.GrowToHeight(int(rock.height) + 4)
@@ -217,9 +255,70 @@ func day17(filename string) {
 		chamber.StampRock(rock)
 
 	}
-	chamber.Print()
-	fmt.Println(chamber.height)
+}
 
+type PatternKey struct {
+	DepthMap [7]uint
+	JetIndex uint
+}
+
+type PatternValue struct {
+	rocks  uint
+	height uint
+}
+
+func part2(jetpattern *string) {
+	chamber := NewChamber()
+	pk, rock_freq, height_freq, rocks, err := findPatternFrequency(jetpattern, chamber)
+	common.Check(err)
+	target := 1000000000000
+	target -= int(rocks)
+
+	m := target / int(rock_freq)
+	remaining_drops := target % int(rock_freq)
+	h := m * int(height_freq)
+	DropRocks(chamber, jetpattern, int(pk.JetIndex), remaining_drops-1)
+	fmt.Printf("%d\n", h+int(chamber.height))
+}
+
+func findPatternFrequency(jetpattern *string, chamber *Chamber) (PatternKey, uint, uint, uint, error) {
+
+	jet_idx := 0
+
+	patternHash := map[PatternKey]PatternValue{}
+
+	for i := uint(0); true; i++ {
+		rock_char := rockpattern[int(i)%len(rockpattern)]
+		rock := NewRock(rock_char, chamber.height+3)
+		chamber.GrowToHeight(int(rock.height) + 4)
+
+		for settled := false; settled == false; {
+			switch (*jetpattern)[jet_idx] {
+			case '<':
+				rock.ShiftLeft(chamber)
+			case '>':
+				rock.ShiftRight(chamber)
+			}
+			jet_idx++
+			if jet_idx >= len(*jetpattern) {
+				jet_idx = 0
+			}
+			settled = rock.MoveDown(chamber)
+
+		}
+		chamber.StampRock(rock)
+		depthMap := chamber.DepthMap()
+		pk := PatternKey{DepthMap: depthMap, JetIndex: uint(jet_idx)}
+		a, ok := patternHash[pk]
+		if ok {
+			diff_rocks := i - a.rocks
+			diff_height := chamber.height - a.height
+			return pk, diff_rocks, diff_height, i, nil
+		} else {
+			patternHash[pk] = PatternValue{rocks: i, height: chamber.height}
+		}
+	}
+	panic("Impossible to get here")
 }
 
 func readInput(filename string) *string {
